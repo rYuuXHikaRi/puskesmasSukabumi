@@ -8,5 +8,7 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // })->middleware('auth:sanctum');
 
-Route::get('/index', [UserController::class, 'index']);
+Route::get('/index', [UserController::class, 'index'])->middleware('auth:api');
 Route::post('/register', [UserController::class, 'register']);
+Route::post('/auth', [UserController::class, 'authenticate']);
+Route::post('/deauth', [UserController::class, 'deauth']);
