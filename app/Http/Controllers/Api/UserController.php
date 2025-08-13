@@ -21,6 +21,7 @@ class UserController extends Controller
     }
 
     public function register(Request $request) {
+        
         $validator = Validator::make($request->all(),[
         'nik' => 'required',
         'name' => 'required',
@@ -69,7 +70,6 @@ class UserController extends Controller
     }
 
     public function authenticate(Request $request) {
-
         $validator = Validator::make($request->all(),[
         'email' => 'required',
         'password' => 'required',
