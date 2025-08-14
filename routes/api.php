@@ -12,16 +12,16 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/auth', [UserController::class, 'authenticate']);
 Route::post('/user/deauth', [UserController::class, 'deauth']);
-Route::get('/user/show', [UserController::class, 'index'])->middleware('auth:api');
-Route::post('/user/register', [UserController::class, 'register'])->middleware('auth:api');
+Route::get('/user/show', [UserController::class, 'index']); //add -> middleware('auth:api') to use with authenticate user, but will throw 500 if token not valid
+Route::post('/user/register', [UserController::class, 'register']);
 
 
-Route::get('/medicine/unitmeasurement/show', [MedicineUnitMeasurenmentController::class, 'index'])->middleware('auth:api');
-Route::post('/medicine/unitmeasurement/register', [MedicineUnitMeasurenmentController::class, 'store'])->middleware('auth:api');
-Route::put('/medicine/unitmeasurement/edit/{id}', [MedicineUnitMeasurenmentController::class, 'update'])->middleware('auth:api');
+Route::get('/medicine/unitmeasurement/show', [MedicineUnitMeasurenmentController::class, 'index']);
+Route::post('/medicine/unitmeasurement/register', [MedicineUnitMeasurenmentController::class, 'store']);
+Route::put('/medicine/unitmeasurement/edit/{id}', [MedicineUnitMeasurenmentController::class, 'update']);
 
-Route::get('/medicine/storage/show', [MedicineStorageController::class, 'index'])->middleware('auth:api');
-Route::post('/medicine/storage/register', [MedicineStorageController::class, 'store'])->middleware('auth:api');
-Route::put('/medicine/storage/edit/{id}', [MedicineStorageController::class, 'update'])->middleware('auth:api');
+Route::get('/medicine/storage/show', [MedicineStorageController::class, 'index']);
+Route::post('/medicine/storage/register', [MedicineStorageController::class, 'store']);
+Route::put('/medicine/storage/edit/{id}', [MedicineStorageController::class, 'update']);
 
 
