@@ -16,6 +16,7 @@ class MedicineStorageController extends Controller
     
     public function index() {
         try {
+            $user = JWTAuth::parseToken()->authenticate();
             $medicineStorage = Gudang::all();
             return response()->json($medicineStorage);
         } catch(TokenExpiredException $e) {
@@ -34,7 +35,8 @@ class MedicineStorageController extends Controller
     public function store(Request $request) {
         
         try {
-            $validator = Validator::make($request->all(),[
+            $user = JWTAuth::parseToken()->authenticate();
+            Validator::make($request->all(),[
                 'kode_gudang' => 'required|unique:m_gudang, kode_gudang',
                 'nama_gudang' => 'required',
                 'tipe' => 'required',
@@ -69,14 +71,21 @@ class MedicineStorageController extends Controller
                 'success' => false,
                 'message' => 'Token Expired ! Silahkan re:login kembali',
             ], 401);
+        } catch(TokenInvalidException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token Invalid ! Silahkan re:login kembali',
+            ],401);
         }
 
     }
 
     public function update(Request $request, string $id) {
+        
         try {
+            $user = JWTAuth::parseToken()->authenticate();
             $medicineStorage = Gudang::findOrFail($id);
-            $validator = Validator::make($request->all(),[
+            Validator::make($request->all(),[
                 'kode_gudang' => ['required', Rule::unique('m_gudang', 'kode_gudang')->ignore($medicineStorage->id)],
                 'nama_gudang' => 'required',
                 'tipe' => 'required',
