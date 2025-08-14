@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\MedicineController;
 use App\Http\Controllers\Api\MedicineStorageController;
 use App\Http\Controllers\Api\MedicineUnitMeasurenmentController;
 use App\Http\Controllers\Api\UserController;
@@ -24,4 +25,7 @@ Route::get('/medicine/storage/show', [MedicineStorageController::class, 'index']
 Route::post('/medicine/storage/register', [MedicineStorageController::class, 'store']);
 Route::put('/medicine/storage/edit/{id}', [MedicineStorageController::class, 'update']);
 
+Route::get('/medicine/show', [MedicineController::class, 'index']);
+Route::post('/medicine/register', [MedicineController::class, 'store']);
+Route::put('/medicine/edit/{id}', [MedicineController::class, 'update']);
 
