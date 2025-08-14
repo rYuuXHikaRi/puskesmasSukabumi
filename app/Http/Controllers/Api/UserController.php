@@ -16,8 +16,25 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = User::all();
-        return response()->json($users);
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+            $users = User::all();
+            return response()->json([
+                'success' => true,
+                'data' => $users,
+            ], 200);
+        } catch(TokenExpiredException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token Expired ! Silahkan re:login kembali',
+            ], 401);
+        } catch(TokenInvalidException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token Invalid ! Silahkan re:login kembali',
+            ],401);
+        }
+        
     }
 
     public function register(Request $request) {
