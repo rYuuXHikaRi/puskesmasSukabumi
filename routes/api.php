@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\EmergencyKitsController;
 use App\Http\Controllers\Api\MedicineController;
 use App\Http\Controllers\Api\MedicineStorageController;
 use App\Http\Controllers\Api\MedicineUnitMeasurenmentController;
@@ -33,4 +34,8 @@ Route::put('/medicine/edit/{id}', [MedicineController::class, 'update']);
 Route::get('/patient/show', [PatientController::class, 'index']);
 Route::post('/patient/register', [PatientController::class, 'store']);
 Route::put('/patient/edit/{id}', [PatientController::class, 'update']);
+
+Route::get('/medkit/show', [EmergencyKitsController::class, 'index']);
+Route::post('/medkit/register', [EmergencyKitsController::class, 'store']);
+Route::put('/medkit/edit/{id}', [EmergencyKitsController::class, 'update']);
 
