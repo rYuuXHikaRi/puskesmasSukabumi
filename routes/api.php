@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\MedicineController;
 use App\Http\Controllers\Api\MedicineStorageController;
 use App\Http\Controllers\Api\MedicineUnitMeasurenmentController;
+use App\Http\Controllers\Api\PatientController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,4 +29,8 @@ Route::put('/medicine/storage/edit/{id}', [MedicineStorageController::class, 'up
 Route::get('/medicine/show', [MedicineController::class, 'index']);
 Route::post('/medicine/register', [MedicineController::class, 'store']);
 Route::put('/medicine/edit/{id}', [MedicineController::class, 'update']);
+
+Route::get('/patient/show', [PatientController::class, 'index']);
+Route::post('/patient/register', [PatientController::class, 'store']);
+Route::put('/patient/edit/{id}', [PatientController::class, 'update']);
 
