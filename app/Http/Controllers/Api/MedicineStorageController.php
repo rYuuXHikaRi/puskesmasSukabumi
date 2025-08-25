@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Services\HistoryMedicineServices;
+
 use App\Models\Gudang;
 use App\Models\GudangObat;
 use App\Http\Controllers\Controller;
@@ -13,7 +15,13 @@ use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class MedicineStorageController extends Controller
-{
+{   
+
+    protected $historyMedicineServices;
+
+    public function __construct(HistoryMedicineServices $historyMedicineServices) {
+        $this->historyMedicineServices = $historyMedicineServices;
+    }
     
     public function index() {
         try {
@@ -166,7 +174,8 @@ class MedicineStorageController extends Controller
 
     public function medicineStockStore(Request $request) {
         try {
-            $user = JWTAuth::parseToken()->authenticate();
+            $user = JWTAuth::parseToken()->authenticate()->id;
+            
             $validator = Validator::make($request->all(),[
                 'obat_id' => ['required', 'integer', Rule::exists('m_obat', 'id')],
                 'gudang_id' => ['required', 'integer', Rule::exists('m_gudang', 'id')],
@@ -199,11 +208,30 @@ class MedicineStorageController extends Controller
                 
                 $gudang->obat()->attach($request->obat_id, ['stok' => $request->stok]);
                 $medicineStock = $gudang->obat()->where('obat_id', $request->obat_id)->first();
+                $medicineStockIn = $this->historyMedicineServices->medicineIn(
+                    $request->obat_id,
+                    $request->gudang_id,
+                    $user,
+                    null,
+                    $request->stok,
+                    "Penambahan Obat ke Gudang"
+                );
+                $medicineStockHistory = $this->historyMedicineServices->medicineHistory(
+                    $request->obat_id,
+                    $request->gudang_id,
+                    $user,
+                    $request->stok,
+                    'masuk',
+                    "Penambahan Obat ke Gudang",
+                    null
+                );
                 
                 return response()->json([
                     'success' => true,
                     'message' => 'Entry Stok Obat berhasil ditambahkan',
-                    'data' => $medicineStock->pivot,
+                    'medicineStockEntry' => $medicineStock->pivot,
+                    'medicineStockIn' => $medicineStockIn,
+                    'medicineStockHistory' => $medicineStockHistory,
                 ], 201);
             }
 
