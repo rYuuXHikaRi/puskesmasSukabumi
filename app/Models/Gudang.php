@@ -44,4 +44,10 @@ class Gudang extends Model
     {
         return $this->hasMany(HistoriGudangObat::class, 'gudang_id');
     }
+
+    public function obat()
+    {
+        return $this->belongsToMany(Obat::class, 'gudang_obat', 'gudang_id', 'obat_id')
+                    ->withPivot('stok');
+    }
 }
