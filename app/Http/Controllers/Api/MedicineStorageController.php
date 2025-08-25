@@ -282,9 +282,4 @@ class MedicineStorageController extends Controller
         }
     }
 
-    public function medicineStockGet() {
-        
-    }
-
-
 }
