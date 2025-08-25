@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Services\HistoryMedicineServices;
+
+use App\Models\Gudang;
 use App\Models\EmergencyKit;
 use App\Models\EmergencyKitObat;
+use App\Models\PengambilanObat;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -15,7 +19,14 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class EmergencyKitsController extends Controller
 {
-public function index() {
+    
+    protected $historyMedicineServices;
+
+    public function __construct(HistoryMedicineServices $historyMedicineServices) {
+        $this->historyMedicineServices = $historyMedicineServices;
+    }
+
+    public function index() {
         try {
             $user = JWTAuth::parseToken()->authenticate();
             $kit = EmergencyKit::all();
@@ -195,8 +206,9 @@ public function index() {
     }
 
     public function stockStore(Request $request) {
+        $gudangId = $request->input('fromGudangId');
         try {
-            $user = JWTAuth::parseToken()->authenticate();
+            $user = JWTAuth::parseToken()->authenticate()->id;
             $validator = Validator::make($request->all(),[
                 'obat_id' => ['required', 'integer', Rule::exists('m_obat', 'id')],
                 'emergency_kit_id' => ['required', 'integer', Rule::exists('emergency_kit', 'id')],
@@ -211,8 +223,23 @@ public function index() {
             };
 
             $emergencyKit = EmergencyKit::find($request->emergency_kit_id);
+            $gudang = Gudang::find($gudangId);
+            $medicineOnWarehouse = $gudang->obat()->where('obat_id', $request->obat_id)->first()->pivot->stok;
+            if($medicineOnWarehouse < $request->stok) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Stok di gudang tidak mencukupi ! Stok di gudang saat ini : '.$medicineOnWarehouse,
+                ], 422);
+            }
+
+            if (!$medicineOnWarehouse) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Obat tidak ditemukan di gudang !',
+                ], 404);
+            }
+
             $isExist = $emergencyKit->obat()->where('obat_id', $request->obat_id)->first();
-           
             if($isExist) {
                 return response()->json([
                     'message' => 'Entri stok untuk obat ini di emergencyKit sudah ada. Gunakan PUT untuk memperbarui.',
@@ -221,12 +248,36 @@ public function index() {
             } else {
                 
                 $emergencyKit->obat()->attach($request->obat_id, ['stok' => $request->stok]);
+                $gudang->obat()->updateExistingPivot($request->obat_id, ['stok' => $gudang->obat()->where('obat_id', 
+                                                                         $request->obat_id)->first()->pivot->stok - $request->stok
+                                                                    ]);
+                $medicineIn = $this->historyMedicineServices->medicineIn(
+                    $request->obat_id,
+                    $gudangId,
+                    $user,
+                    $request->emergency_kit_id,
+                    $request->stok,
+                    "Penambahan Obat ke Emergency Kit"
+                );
+
+                $medicineHistoryOut = $this ->historyMedicineServices->medicineHistory(
+                    $request->obat_id,
+                    $gudangId,
+                    $user,
+                    $request->stok,
+                    'keluar',
+                    "Penambahan Obat ke Emergency Kit",
+                    $request->emergency_kit_id
+                );
+
                 $medicineStock = $emergencyKit->obat()->where('obat_id', $request->obat_id)->first();
                 
                 return response()->json([
                     'success' => true,
                     'message' => 'Entry Stok Obat pada Emergency Kit berhasil ditambahkan',
-                    'data' => $medicineStock->pivot,
+                    'medicineStock' => $medicineStock->pivot,
+                    'medicineIn' => $medicineIn,
+                    'medicineHistoryOut' => $medicineHistoryOut
                 ], 201);
             }
 
@@ -304,6 +355,84 @@ public function index() {
                 'message' => 'Token Invalid ! Silahkan re:login kembali',
             ],401);
         }
-    }    
+    }
+
+    public function getMedicine(Request $request) {
+        
+        $obatId = $request->input('obatId');
+        $validator = Validator::make($request->all(),[
+            'pengambilan_id' => ['required', Rule::exists('pengambilan_obat', 'id')],
+            'jumlah' => 'required|integer|min:1',
+            'keterangan' => 'nullable',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $user = JWTAuth::parseToken()->authenticate()->id;
+
+            $emergency_kit_id = PengambilanObat::where('id', $request->pengambilan_id)->first()->emergency_kit_id;
+            $gudang_id = PengambilanObat::where('id', $request->pengambilan_id)->first()->gudang_id;
+
+
+            $emergencyKit = EmergencyKit::find($emergency_kit_id);
+            $gudang = Gudang::find($gudang_id);
+
+            if($emergencyKit->obat()->where('obat_id', $obatId)->first()->pivot->stok > $request->jumlah) {
+                $emergencyKit->obat()->updateExistingPivot($obatId, [
+                    'stok' => $emergencyKit->obat()->where('obat_id', $obatId)->first()->pivot->stok - $request->jumlah,
+                ]);
+            } else if ($gudang->obat()->where('obat_id', $obatId)->first()->pivot->stok > $request->jumlah) {
+                $gudang->obat()->updateExistingPivot($obatId, [
+                    'stok' => $gudang->obat()->where('obat_id', $obatId)->first()->pivot->stok - $request->jumlah,
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Stok di emergency kit dan gudang tidak mencukupi !',
+                ], 422);
+            }
+            
+            $acquiredMedicine = $this->historyMedicineServices->medicineOut(
+                $request->pengambilan_id,
+                $obatId,
+                $request->jumlah,
+                $request->keterangan,
+                $user,
+                $user
+            );
+
+            if($acquiredMedicine) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pengambilan obat berhasil',
+                    'data' => $acquiredMedicine
+                ], 200);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal melakukan pengambilan obat, periksa input kembali !',
+                ], 422);
+            }
+        } catch(TokenExpiredException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token expired!',
+            ],401);
+        } catch(TokenInvalidException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token Invalid!',
+            ],401);
+        }
+
+    }
+    
+    
 
 }
