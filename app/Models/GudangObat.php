@@ -11,7 +11,8 @@ class GudangObat extends Pivot
     use HasFactory;
 
     protected $table = 'gudang_obat';
-    public $incrementing = false; // Karena tidak ada primary key auto-increment
+    public $incrementing = false;
+    public $timestamps = false;
     protected $primaryKey = ['obat_id', 'gudang_id'];
     protected $fillable = [
         'stok',
