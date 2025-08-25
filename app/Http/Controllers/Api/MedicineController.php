@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Obat;
+use App\Models\PengambilanObat;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -175,4 +176,49 @@ public function index() {
             ],400);  
         }
     }
+
+public function createRetrievalMedicine(Request $request) {
+        $validator = Validator::make($request->all(),[
+            'emergency_kit_id' => ['required', Rule::exists('emergency_kit', 'id')],
+            'gudang_id' => ['required', Rule::exists('m_gudang', 'id')],
+            'pasien_id' => ['required', Rule::exists('pasiens', 'id')],
+            'keterangan' => 'nullable',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $user = JWTAuth::parseToken()->authenticate()->id;
+            $retrievalMedicine = PengambilanObat::create([
+                'user_id' => $user,
+                'emergency_kit_id' => $request->emergency_kit_id,
+                'gudang_id' => $request->gudang_id,
+                'pasien_id' => $request->pasien_id,
+                'keterangan' => $request->keterangan,
+                'updated_by' => $user,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pengambilan Obat berhasil ditambahkan',
+                'data' => $retrievalMedicine
+            ], 201);
+        } catch(TokenExpiredException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token Expired ! Silahkan re:login kembali',
+            ], 401);
+        } catch(JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => "Missing Token ! Token can't be parsed",
+            ],400);  
+        } 
+    } 
+
 }
