@@ -35,7 +35,8 @@ class HistoryMedicineServices
             if($validator->fails()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Periksa data inputan kembali !'
+                    'message' => 'Periksa data inputan kembali !',
+                    'errors' => $validator->errors()
                 ]);
             } else {
                 $medicineIn = ObatMasuk::create([
@@ -59,19 +60,19 @@ class HistoryMedicineServices
 
     }
 
-    public function medicineOut($pengambilan_id, $obat_id, $jumlah, $keterangan = null, $created_by, $updated_by) {
+    public function medicineOut($pengambilan_obat_id, $obat_id, $jumlah, $keterangan = null, $created_by, $updated_by) {
         
         try {
             $validator = Validator::make(
                 [
-                    'pengambilan_id' => $pengambilan_id,
+                    'pengambilan_obat_id' => $pengambilan_obat_id,
                     'obat_id' => $obat_id,
                     'jumlah' => $jumlah,
                     'created_by' => $created_by,
                     'updated_by' => $updated_by,
                 ],
                 [
-                    'pengambilan_id' => 'required|exists:pengambilan_obat,id',
+                    'pengambilan_obat_id' => 'required|exists:pengambilan_obat,id',
                     'obat_id' => 'required|exists:m_obat,id',
                     'jumlah' => 'required|integer|min:1',
                     'created_by' => 'required|exists:users,id',
@@ -82,11 +83,12 @@ class HistoryMedicineServices
             if($validator->fails()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Periksa data inputan kembali !'
+                    'message' => 'Periksa data inputan kembali !',
+                    'errors' => $validator->errors()
                 ]);
             } else {
                 $medicineOut = ObatKeluar::create([
-                    'pengambilan_id' => $pengambilan_id,
+                    'pengambilan_obat_id' => $pengambilan_obat_id,
                     'obat_id' => $obat_id,
                     'jumlah' => $jumlah,
                     'keterangan' => $keterangan,
