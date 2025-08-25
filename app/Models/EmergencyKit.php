@@ -26,6 +26,6 @@ class EmergencyKit extends Model
     public function obat()
     {
         return $this->belongsToMany(Obat::class, 'emergency_kit_obat', 'emergency_kit_id', 'obat_id')
-                    ->withPivot('stok');
+                    ->withPivot('stok')->withTimestamps();
     }
 }
