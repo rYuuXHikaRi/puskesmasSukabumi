@@ -33,6 +33,7 @@ Route::put('/medicine/storage/stockUpdate', [MedicineStorageController::class, '
 Route::get('/medicine/show', [MedicineController::class, 'index']);
 Route::post('/medicine/register', [MedicineController::class, 'store']);
 Route::put('/medicine/edit/{id}', [MedicineController::class, 'update']);
+Route::post('/medicine/createRetrieval', [MedicineController::class, 'createRetrievalMedicine']);
 
 
 Route::get('/patient/show', [PatientController::class, 'index']);
@@ -45,4 +46,7 @@ Route::put('/medkit/edit/{id}', [EmergencyKitsController::class, 'update']);
 Route::get('/medkit/stockView', [EmergencyKitsController::class, 'stockIndex']);
 Route::post('/medkit/stockAdd', [EmergencyKitsController::class, 'stockStore']);
 Route::put('/medkit/stockUpdate', [EmergencyKitsController::class, 'stockUpdate']);
+Route::put('/medkit/getMedicine', [EmergencyKitsController::class, 'getMedicine']);
+
+
 
