@@ -407,11 +407,22 @@ class EmergencyKitsController extends Controller
                 $user
             );
 
+            $pushToHistory = $this->historyMedicineServices->medicineHistory(
+                $obatId,
+                $gudang_id,
+                $user,
+                $request->jumlah,
+                'keluar',
+                "Pengambilan Obat dari Emergency Kit",
+                $emergency_kit_id
+            );  
+
             if($acquiredMedicine) {
                 return response()->json([
                     'success' => true,
                     'message' => 'Pengambilan obat berhasil',
-                    'data' => $acquiredMedicine
+                    'acquiredMedicine' => $acquiredMedicine,
+                    'pushedToHistoryIn' => $pushToHistory
                 ], 200);
             } else {
                 return response()->json([
