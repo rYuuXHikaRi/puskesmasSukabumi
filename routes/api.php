@@ -26,10 +26,14 @@ Route::put('/medicine/unitmeasurement/edit/{id}', [MedicineUnitMeasurenmentContr
 Route::get('/medicine/storage/show', [MedicineStorageController::class, 'index']);
 Route::post('/medicine/storage/register', [MedicineStorageController::class, 'store']);
 Route::put('/medicine/storage/edit/{id}', [MedicineStorageController::class, 'update']);
+Route::get('/medicine/storage/stockView', [MedicineStorageController::class, 'medicineStockIndex']);
+Route::post('/medicine/storage/stockAdd', [MedicineStorageController::class, 'medicineStockStore']);
+Route::put('/medicine/storage/stockUpdate', [MedicineStorageController::class, 'medicineStockUpdate']);
 
 Route::get('/medicine/show', [MedicineController::class, 'index']);
 Route::post('/medicine/register', [MedicineController::class, 'store']);
 Route::put('/medicine/edit/{id}', [MedicineController::class, 'update']);
+
 
 Route::get('/patient/show', [PatientController::class, 'index']);
 Route::post('/patient/register', [PatientController::class, 'store']);
