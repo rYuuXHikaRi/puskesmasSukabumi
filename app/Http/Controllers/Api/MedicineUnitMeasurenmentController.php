@@ -37,6 +37,12 @@ class MedicineUnitMeasurenmentController extends Controller
                 'nama_satuan' => 'required|max:255|unique:m_satuan_obat',
                 'keterangan' => 'nullable|max:255',
             ]);
+            if($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
 
             $userId = auth('api')->user()->id;
 
@@ -52,11 +58,6 @@ class MedicineUnitMeasurenmentController extends Controller
                 'message' => 'Satuan obat berhasil ditambahkan',
                 'data' => $medicineUnitMeasurement
             ], 201);
-        } catch(\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menambahkan data satuan obat, Periksa input kembali !',
-            ], 422);
         } catch(TokenExpiredException $e) {
             return response()->json([
                 'success' => false,
