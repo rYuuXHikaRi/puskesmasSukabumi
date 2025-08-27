@@ -25,14 +25,19 @@ class UserController extends Controller
             ], 200);
         } catch(TokenExpiredException $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Token Expired ! Silahkan re:login kembali',
+                'tokenStatus' => 'expired',
+                'message' => 'Silahkan re:login !',
             ], 401);
         } catch(TokenInvalidException $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Token Invalid ! Silahkan re:login kembali',
+                'tokenStatus' => 'invalid',
+                'message' => 'Silahkan re:login !',
             ],401);
+        } catch(JWTException $e) {
+            return response()->json([
+                'tokenStatus' => 'notFound',
+                'message' => "Please Login First !",
+            ],400);
         }
         
     }
@@ -47,18 +52,18 @@ class UserController extends Controller
         } catch(TokenExpiredException $e) {
             return response()->json([
                 'tokenStatus' => 'expired',
-                'message' => 'Token Expired ! Silahkan re:login kembali',
+                'message' => 'Silahkan re:login !',
             ], 401);
         } catch(TokenInvalidException $e) {
             return response()->json([
                 'tokenStatus' => 'invalid',
-                'message' => 'Token Invalid ! Silahkan re:login kembali',
+                'message' => 'Silahkan re:login !',
             ],401);
         } catch(JWTException $e) {
             return response()->json([
                 'tokenStatus' => 'notFound',
-                'message' => "Token not found or can't be processed!",
-            ],401);
+                'message' => "Please Login First !",
+            ],400);
         }
     }
 
@@ -77,41 +82,54 @@ class UserController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()
+            ], 422);
         }
         
         $file = $request->file('foto');
         $fileName = time() . '.' . $file->getClientOriginalExtension();
         $file->storeAs('/public/images', $fileName);
 
-        $user = User::create([
-            'nik' => $request->nik,
-            'name' => $request->name,
-            'username' => $request->username,
-            'email' => $request->email,
-            'password' => $request->password,
-            'unit_layanan_id' => $request->unit_layanan_id,
-            'age' => $request->age,
-            'gender' => $request->gender,
-            'address' => $request->address,
-            'foto' => $fileName,
-        ]);
+        try {
+            $user = User::create([
+                'nik' => $request->nik,
+                'name' => $request->name,
+                'username' => $request->username,
+                'email' => $request->email,
+                'password' => $request->password,
+                'unit_layanan_id' => $request->unit_layanan_id,
+                'age' => $request->age,
+                'gender' => $request->gender,
+                'address' => $request->address,
+                'foto' => $fileName,
+            ]);
 
-        if ($user) {
             return response()-> json([
                 'success' => true,
                 'message' => 'Register Account Berhasil',
                 'data' => $user,
             ], 201);
-        } else {
+        } catch (\Exception $e) {
             return response()-> json([
                 'success' => false,
-                'message' => 'Register Account Gagal :(',
+                'message' => 'Register Account Gagal :(, Reason: ' . $e->getMessage(),
             ], 409);
         }
     }
 
     public function authenticate(Request $request) {
+        $isEmailSame = \App\Models\User::whereRaw('BINARY email = ?', [$request->email])->first();
+
+        if (!$isEmailSame) {
+            return response()->json([
+                'success' => false,
+                'isLoginAttempt' => true,
+                'message' => "Email tidak ditemukan atau case tidak sesuai"
+            ], 401);
+        }
+
         $validator = Validator::make($request->all(),[
         'email' => 'required',
         'password' => 'required',
@@ -120,7 +138,7 @@ class UserController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'data' => $validator->errors(),
+                'message' => $validator->errors(),
             ], 422);
         }
 
@@ -130,6 +148,7 @@ class UserController extends Controller
         if(!$token) {
             return response()->json([
                 'success' => false,
+                'isLoginAttempt' => true,
                 'message'=> "Email atau Password salah"
             ], 401);
         } else {
@@ -145,33 +164,26 @@ class UserController extends Controller
 
         try {
             $token = JWTauth::getToken();
-            if(!$token) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Token tidak ditemukan',
-                ], 400);
-            } else {
-                auth('api')->logout(true);
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Logout berhasil',
-                ],200);
-            }
+            auth('api')->logout(true);
+            return response()->json([
+                'success' => true,
+                'message' => 'Logout berhasil',
+            ],200);
         } catch(TokenExpiredException $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Token expired!',
-            ],401);
+                'tokenStatus' => 'expired',
+                'message' => 'Silahkan re:login !',
+            ], 401);
         } catch(TokenInvalidException $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Token Invalid!',
+                'tokenStatus' => 'invalid',
+                'message' => 'Silahkan re:login !',
             ],401);
         } catch(JWTException $e) {
             return response()->json([
-                'success' => false,
-                'message' => "Token not found or can't be processed!",
-            ],401);
+                'tokenStatus' => 'notFound',
+                'message' => "Please Login First !",
+            ],400);
         }
     }
 
