@@ -17,6 +17,7 @@ Route::post('/auth', [UserController::class, 'authenticate']);
 Route::post('/user/deauth', [UserController::class, 'deauth']);
 Route::get('/user/show', [UserController::class, 'index']); //add -> middleware('auth:api') to use with authenticate user, but will throw 500 if token not valid
 Route::post('/user/register', [UserController::class, 'register']);
+Route::post('/user/check', [UserController::class, 'checkToken']);
 
 
 Route::get('/medicine/unitmeasurement/show', [MedicineUnitMeasurenmentController::class, 'index']);
