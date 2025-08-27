@@ -27,25 +27,25 @@ public function index() {
             } else {
                 return response()->json([
                     'success' => false,
-                    'data' => "There is no medicine data"
+                    'message' => "There is no medicine data"
                 ], 404);
             };
 
         } catch(TokenExpiredException $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Token expired!',
-            ],401);
+                'tokenStatus' => 'expired',
+                'message' => 'Silahkan re:login kembali',
+            ], 401);
         } catch(TokenInvalidException $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Token Invalid!',
+                'tokenStatus' => 'invalid',
+                'message' => 'Silahkan re:login kembali',
             ],401);
-        }  catch(JWTException $e) {
+        } catch(JWTException $e) {
             return response()->json([
-                'success' => false,
-                'message' => "Missing Token ! Token can't be parsed",
-            ],400);  
+                'tokenStatus' => 'notFound',
+                'message' => "Please Login First !",
+            ],400);
         }
     }
     
@@ -116,19 +116,19 @@ public function index() {
             ], 422);
         } catch(TokenExpiredException $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Token Expired ! Silahkan re:login kembali',
+                'tokenStatus' => 'expired',
+                'message' => 'Silahkan re:login !',
             ], 401);
         } catch(TokenInvalidException $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Token Invalid ! Silahkan re:login kembali',
+                'tokenStatus' => 'invalid',
+                'message' => 'Silahkan re:login !',
             ],401);
         } catch(JWTException $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Missing Token !',
-            ],400);  
+                'tokenStatus' => 'notFound',
+                'message' => "Please Login First !",
+            ],400);
         }
 
     }
@@ -201,14 +201,19 @@ public function index() {
             ], 422);
         } catch(TokenExpiredException $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Token Expired ! Silahkan re:login kembali',
+                'tokenStatus' => 'expired',
+                'message' => 'Silahkan re:login !',
             ], 401);
+        } catch(TokenInvalidException $e) {
+            return response()->json([
+                'tokenStatus' => 'invalid',
+                'message' => 'Silahkan re:login !',
+            ],401);
         } catch(JWTException $e) {
             return response()->json([
-                'success' => false,
-                'message' => "Missing Token ! Token can't be parsed",
-            ],400);  
+                'tokenStatus' => 'notFound',
+                'message' => "Please Login First !",
+            ],400);
         }
     }
 }

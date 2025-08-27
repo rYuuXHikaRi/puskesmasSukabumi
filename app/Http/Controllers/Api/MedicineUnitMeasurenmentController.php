@@ -10,29 +10,37 @@ use Illuminate\Validation\Rule;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
 
 class MedicineUnitMeasurenmentController extends Controller
 {
     
     public function index() {
         try {
+            $user = JWTAuth::parseToken()->authenticate();
             $medicineUnitMeasurement = SatuanObat::all();
             return response()->json($medicineUnitMeasurement);
         } catch(TokenExpiredException $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Token expired!',
-            ],401);
+                'tokenStatus' => 'expired',
+                'message' => 'Silahkan re:login !',
+            ], 401);
         } catch(TokenInvalidException $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Token Invalid!',
+                'tokenStatus' => 'invalid',
+                'message' => 'Silahkan re:login !',
             ],401);
+        } catch(JWTException $e) {
+            return response()->json([
+                'tokenStatus' => 'notFound',
+                'message' => "Please Login First !",
+            ],400);
         }
     }
     public function store(Request $request) {
         
         try {
+            $user = JWTAuth::parseToken()->authenticate();
             $validator = Validator::make($request->all(),[
                 'nama_satuan' => 'required|max:255|unique:m_satuan_obat',
                 'keterangan' => 'nullable|max:255',
@@ -40,7 +48,7 @@ class MedicineUnitMeasurenmentController extends Controller
             if($validator->fails()) {
                 return response()->json([
                     'success' => false,
-                    'errors' => $validator->errors()
+                    'message' => $validator->errors()
                 ], 422);
             }
 
@@ -60,15 +68,26 @@ class MedicineUnitMeasurenmentController extends Controller
             ], 201);
         } catch(TokenExpiredException $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Token Expired ! Silahkan re:login kembali',
+                'tokenStatus' => 'expired',
+                'message' => 'Silahkan re:login !',
             ], 401);
+        } catch(TokenInvalidException $e) {
+            return response()->json([
+                'tokenStatus' => 'invalid',
+                'message' => 'Silahkan re:login !',
+            ],401);
+        } catch(JWTException $e) {
+            return response()->json([
+                'tokenStatus' => 'notFound',
+                'message' => "Please Login First !",
+            ],400);
         }
 
     }
 
     public function update(Request $request, string $id) {
         try {
+            $user = JWTAuth::parseToken()->authenticate();
             $medicineUnitMeasurement = SatuanObat::findOrFail($id);
             $validator = Validator::make($request->all(),[
                 'nama_satuan' => ['required', Rule::unique('m_satuan_obat')->ignore($medicineUnitMeasurement->id)],
@@ -95,9 +114,19 @@ class MedicineUnitMeasurenmentController extends Controller
             ], 422);
         } catch(TokenExpiredException $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Token Expired ! Silahkan re:login kembali',
+                'tokenStatus' => 'expired',
+                'message' => 'Silahkan re:login !',
             ], 401);
+        } catch(TokenInvalidException $e) {
+            return response()->json([
+                'tokenStatus' => 'invalid',
+                'message' => 'Silahkan re:login !',
+            ],401);
+        } catch(JWTException $e) {
+            return response()->json([
+                'tokenStatus' => 'notFound',
+                'message' => "Please Login First !",
+            ],400);
         }
     }
 }
