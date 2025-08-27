@@ -37,6 +37,31 @@ class UserController extends Controller
         
     }
 
+    public function checkToken() {
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+            return response()->json([
+                'tokenStatus' => 'valid',
+                'data' => $user,
+            ], 200);
+        } catch(TokenExpiredException $e) {
+            return response()->json([
+                'tokenStatus' => 'expired',
+                'message' => 'Token Expired ! Silahkan re:login kembali',
+            ], 401);
+        } catch(TokenInvalidException $e) {
+            return response()->json([
+                'tokenStatus' => 'invalid',
+                'message' => 'Token Invalid ! Silahkan re:login kembali',
+            ],401);
+        } catch(JWTException $e) {
+            return response()->json([
+                'tokenStatus' => 'notFound',
+                'message' => "Token not found or can't be processed!",
+            ],401);
+        }
+    }
+
     public function register(Request $request) {
         
         $validator = Validator::make($request->all(),[
