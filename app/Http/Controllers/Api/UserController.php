@@ -152,9 +152,11 @@ class UserController extends Controller
                 'message'=> "Email atau Password salah"
             ], 401);
         } else {
+            $user = auth('api')->user();
+            $user->foto = url('storage/images/' . $user->foto);
             return response()->json([
                 'success' => true,
-                'user' => auth('api')->user(),
+                'user' => $user,
                 'token' => $token, 
             ], 200);
         }
