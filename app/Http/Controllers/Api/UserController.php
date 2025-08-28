@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\User;
+use App\Models\UnitLayanan;
 use App\Http\Controllers\Controller;
+use Carbon\Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -154,6 +156,8 @@ class UserController extends Controller
         } else {
             $user = auth('api')->user();
             $user->foto = url('storage/images/' . $user->foto);
+            $user->unit_layanan = UnitLayanan::where('id', $user->unit_layanan_id)
+                                             ->value('unit_layanan');
             return response()->json([
                 'success' => true,
                 'user' => $user,
