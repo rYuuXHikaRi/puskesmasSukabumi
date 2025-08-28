@@ -11,6 +11,7 @@ use App\Models\PengambilanObat;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -33,7 +34,7 @@ class EmergencyKitsController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $kit
+                'medkitData' => $kit
             ], 200);
 
         } catch(TokenExpiredException $e) {
@@ -172,20 +173,40 @@ class EmergencyKitsController extends Controller
     public function stockIndex(Request $request) {
         $medkitId = $request->input('medkitId');
         $obatId = $request->input('obatId');
+        $unitLayananId = $request->input('unitLayananId');
         $emergencyKit = EmergencyKit::find($medkitId);
         try {
             $user = JWTAuth::parseToken()->authenticate();
-
+            $query = DB::table('emergency_kit_obat')
+                    ->join('emergency_kit', 'emergency_kit_obat.emergency_kit_id', '=', 'emergency_kit.id')
+                    ->join('m_obat', 'emergency_kit_obat.obat_id', '=', 'm_obat.id')
+                    ->join('m_satuan_obat', 'm_obat.satuan_id', '=', 'm_satuan_obat.id')
+                    ->select(
+                        'emergency_kit.nama as kit',
+                        'm_obat.nama_obat as obat',
+                        'm_satuan_obat.nama_satuan as satuan_obat',
+                        DB::raw("CASE 
+                                    WHEN m_obat.jenis_obat = 1 THEN 'Injeksi'
+                                    WHEN m_obat.jenis_obat = 2 THEN 'Oral'
+                                    ELSE 'Lainnya'
+                                END as jenis_obat"),
+                        'emergency_kit_obat.stok',
+                        'm_obat.tanggal_kadaluarsa as expired'
+                    );
             if(!empty($medkitId) && !empty($obatId)) {
-                $medicineStock = $emergencyKit->obat()->where('obat_id', $obatId)->first();
+                $medicineStock = $query->where('emergency_kit.id', $medkitId)
+                                ->where('m_obat.id', $obatId)
+                                ->get();
             } else if(!empty($medkitId)) {
-                $medicineStock = EmergencyKitObat::where('emergency_kit_id', $medkitId)
-                                            ->get();
+                $medicineStock = $query->where('emergency_kit.id', $medkitId)->get();
             } else if(!empty($obatId)) {
                 $medicineStock = EmergencyKitObat::where('obat_id', $obatId)
                                                    ->get();
+            } else if(!empty($unitLayananId)) {
+                $medicineStock = $query->where('emergency_kit.unit_layanan_id', $unitLayananId)
+                                ->get();
             } else {
-                $medicineStock = EmergencyKitObat::all();
+                $medicineStock = $query->get();
             }
             
             if ($medicineStock->isEmpty() || !$medicineStock) {
