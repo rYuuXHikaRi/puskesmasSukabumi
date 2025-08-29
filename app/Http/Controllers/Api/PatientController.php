@@ -73,9 +73,9 @@ public function index() {
                 'diagnosa' => 'required',
             ]);
 
-            if($request->jenis_kelamin == "Perempuan") {
+            if($request->jenis_kelamin == "P") {
                 $gender = "P";
-            } else if($request->jenis_kelamin == "Laki-laki") {
+            } else if($request->jenis_kelamin == "L") {
                 $gender = "L";
             } else {
                 return response()->json([
