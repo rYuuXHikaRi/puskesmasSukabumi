@@ -182,7 +182,9 @@ class EmergencyKitsController extends Controller
                     ->join('m_obat', 'emergency_kit_obat.obat_id', '=', 'm_obat.id')
                     ->join('m_satuan_obat', 'm_obat.satuan_id', '=', 'm_satuan_obat.id')
                     ->select(
+                        'emergency_kit.id as emergency_kit_id',
                         'emergency_kit.nama as kit',
+                        'm_obat.id as obat_id',
                         'm_obat.nama_obat as obat',
                         'm_satuan_obat.nama_satuan as satuan_obat',
                         DB::raw("CASE 
@@ -454,7 +456,7 @@ class EmergencyKitsController extends Controller
                 $user,
                 $request->jumlah,
                 'keluar',
-                "Pengambilan Obat dari Emergency Kit",
+                $request->keterangan,
                 $emergency_kit_id
             );  
 
