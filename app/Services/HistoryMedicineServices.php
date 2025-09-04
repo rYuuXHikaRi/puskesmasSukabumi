@@ -119,7 +119,7 @@ class HistoryMedicineServices
                 ],
                 [
                     'obat_id' => 'required|exists:m_obat,id',
-                    'gudang_id' => 'required|exists:m_gudang,id',
+                    'gudang_id' => 'nullable|exists:m_gudang,id',
                     'user_id' => 'required|exists:users,id',
                     'jumlah' => 'required|integer|min:1',
                     'tipe' => 'required|in:masuk,keluar',
