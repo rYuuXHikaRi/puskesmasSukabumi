@@ -122,7 +122,8 @@ class UserController extends Controller
     }
 
     public function authenticate(Request $request) {
-        $isEmailSame = \App\Models\User::whereRaw('BINARY email = ?', [$request->email])->first();
+        // $isEmailSame = \App\Models\User::whereRaw('BINARY email = ?', [$request->email])->first(); <- for mySQL
+        $isEmailSame = \App\Models\User::whereRaw('LOWER(email) = LOWER(?)', [$request->email])->first();
 
         if (!$isEmailSame) {
             return response()->json([
