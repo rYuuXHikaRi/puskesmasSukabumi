@@ -35,11 +35,13 @@ Route::get('/medicine/show', [MedicineController::class, 'index']);
 Route::post('/medicine/register', [MedicineController::class, 'store']);
 Route::put('/medicine/edit/{id}', [MedicineController::class, 'update']);
 Route::post('/medicine/createRetrieval', [MedicineController::class, 'createRetrievalMedicine']);
+Route::get('/medicine/getMedicineOutData', [MedicineController::class, 'getMedicineOutData']);
 
 
 Route::get('/patient/show', [PatientController::class, 'index']);
 Route::post('/patient/register', [PatientController::class, 'store']);
 Route::put('/patient/edit/{id}', [PatientController::class, 'update']);
+Route::get('/patient/getHistory', [PatientController::class, 'getHistory']);
 
 Route::get('/medkit/show', [EmergencyKitsController::class, 'index']);
 Route::post('/medkit/register', [EmergencyKitsController::class, 'store']);
