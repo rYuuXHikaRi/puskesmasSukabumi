@@ -12,8 +12,8 @@ return new class extends Migration
         Schema::create('pengambilan_obat', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('emergency_kit_id')->constrained('emergency_kit')->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('gudang_id')->constrained('m_gudang')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('emergency_kit_id')->nullable()->constrained('emergency_kit')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('gudang_id')->nullable()->constrained('m_gudang')->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('pasien_id')->constrained('pasiens')->onUpdate('cascade')->onDelete('cascade');
             $table->string('keterangan')->nullable();
             $table->foreignId('updated_by')->constrained('users')->onUpdate('cascade')->onDelete('cascade');

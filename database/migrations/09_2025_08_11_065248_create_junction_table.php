@@ -48,7 +48,7 @@ return new class extends Migration
         Schema::create('histori_gudang_obat', function (Blueprint $table) {
             $table->id();
             $table->foreignId('obat_id')->constrained('m_obat')->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('gudang_id')->constrained('m_gudang')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('gudang_id')->nullable()->constrained('m_gudang')->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('emergency_kit_id')->nullable()->constrained('emergency_kit')->onUpdate('cascade')->onDelete('set null');
             $table->integer('jumlah');
