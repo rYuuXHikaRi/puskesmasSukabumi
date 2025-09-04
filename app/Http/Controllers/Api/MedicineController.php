@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Obat;
+use App\Models\ObatKeluar;
 use App\Models\PengambilanObat;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -15,7 +16,16 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class MedicineController extends Controller
 {
-public function index() {
+    private function jenisObatLabel($jenis)
+    {
+        return match($jenis) {
+            1 => 'Injeksi',
+            2 => 'Oral',
+            default => 'Lainnya'
+        };
+    }
+
+    public function index() {
         try {
             $user = JWTAuth::parseToken()->authenticate();
             $medicine = Obat::all();
@@ -182,10 +192,10 @@ public function index() {
         }
     }
 
-public function createRetrievalMedicine(Request $request) {
+    public function createRetrievalMedicine(Request $request) {
         $validator = Validator::make($request->all(),[
-            'emergency_kit_id' => ['required', Rule::exists('emergency_kit', 'id')],
-            'gudang_id' => ['required', Rule::exists('m_gudang', 'id')],
+            'emergency_kit_id' => ['nullable', Rule::exists('emergency_kit', 'id')],
+            'gudang_id' => ['nullable', Rule::exists('m_gudang', 'id')],
             'pasien_id' => ['required', Rule::exists('pasiens', 'id')],
             'keterangan' => 'nullable',
         ]);
@@ -230,5 +240,51 @@ public function createRetrievalMedicine(Request $request) {
             ],400);
         }
     } 
+
+    public function getMedicineOutData(Request $request) {
+        $pengambilanObatId = $request->input("pengambilanObatId");
+
+        if (!$pengambilanObatId) {
+            return response()->json([
+                'success' => false,
+                'errors' => "Value tidak ada"
+            ], 422);
+        }
+        try {
+            $user = JWTAuth::parseToken()->authenticate()->id;
+            $data = ObatKeluar::with(['obat.satuan'])
+            ->where('pengambilan_obat_id', $pengambilanObatId)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'nama_obat'   => $item->obat->nama_obat,
+                    'satuan_obat'=> $item->obat->satuan->nama_satuan ?? '-',
+                    'jenis_obat' => $this->jenisObatLabel($item->obat->jenis_obat),
+                    'jumlah'     => $item->jumlah,
+                ];
+            });
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ], 200);
+        } catch(TokenExpiredException $e) {
+            return response()->json([
+                'tokenStatus' => 'expired',
+                'message' => 'Silahkan re:login !',
+            ], 401);
+        } catch(TokenInvalidException $e) {
+            return response()->json([
+                'tokenStatus' => 'invalid',
+                'message' => 'Silahkan re:login !',
+            ],401);
+        } catch(JWTException $e) {
+            return response()->json([
+                'tokenStatus' => 'notFound',
+                'message' => "Please Login First !",
+            ],400);
+        }
+
+    }
 
 }
